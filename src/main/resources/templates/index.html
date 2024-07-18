@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Produtos</title>
+</head>
+<body>
+    <h2>Registro de Produtos</h2>
+    <form id="registroForm">
+        <div>
+            <label for="nome">Nome do Produto:</label>
+            <input type="text" class="input" name="nome" id="nome" placeholder="Nome do produto" required>
+        </div>
+        <div>
+            <label for="descricao">Descrição do Produto:</label>
+            <input type="text" class="input" name="descricao" id="descricao" placeholder="Descrição do produto" required>
+        </div>
+        <div>
+            <label for="valor">Valor (R$):</label>
+            <input type="number" class="input" name="valor" id="valor" placeholder="Valor R$" required>
+        </div>
+        <div>
+            <label for="disponivel">Disponível:</label>
+            <select id="disponivel" name="disponivel">
+                <option value="Sim">Sim</option>
+                <option value="Não">Não</option>
+            </select>
+        </div>
+        <button type="button" id="enviarBtn">Registrar</button>
+    </form>
+
+    <h2>Lista de Registros</h2>
+    <ul id="listaRegistros"></ul>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Função para obter e exibir os registros
+            function exibirRegistros() {
+                fetch('http://localhost:8080/ObterRegistros')
+                .then(response => response.json())
+                .then(data => {
+                    var listaRegistros = document.getElementById('listaRegistros');
+                    listaRegistros.innerHTML = ''; // Limpar a lista antes de adicionar os novos registros
+
+                    data.forEach(registro => {
+                        var itemLista = document.createElement('li');
+                        itemLista.textContent = `${registro.nome} - ${registro.descricao} - R$ ${registro.valor} - Disponível: ${registro.disponivel}`;
+                        listaRegistros.appendChild(itemLista);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro ao obter registros:', error);
+                });
+            }
+
+            // Exibir registros ao carregar a página
+            exibirRegistros();
+
+            // Evento de clique no botão de envio
+            document.getElementById('enviarBtn').addEventListener('click', function() {
+                var formData = {
+                    nome: document.getElementById('nome').value,
+                    descricao: document.getElementById('descricao').value,
+                    valor: parseFloat(document.getElementById('valor').value),
+                    disponivel: document.getElementById('disponivel').value
+                };
+
+                fetch('http://localhost:8080/Registrar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao enviar formulário');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Resposta da API:', data);
+                    alert('Produto registrado com sucesso!');
+                    // Redirecionar ou fazer qualquer outra coisa com a resposta da API
+                    // Após o registro bem-sucedido, exibir novamente a lista de registros atualizada
+                    exibirRegistros();
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao registrar produto. Verifique a conexão com a API.');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
